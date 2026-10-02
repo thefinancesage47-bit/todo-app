@@ -1,325 +1,72 @@
-/* ---------- Theme colors ----------
-   Every color in the app comes from these variables. Light values are the
-   default; the [data-theme="dark"] block overrides them when dark mode is on.
-   The data-theme attribute is set on <html> by the useTheme hook. */
-:root {
-  --bg: #f4f5f7; /* page background */
-  --surface: #ffffff; /* the main card */
-  --text: #222222;
-  --text-muted: #666666;
-  --text-faint: #aaaaaa;
-  --border: #dddddd;
-  --divider: #eeeeee;
-  --input-bg: #ffffff;
-  --primary: #4f46e5;
-  --primary-text: #ffffff; /* text on primary-colored buttons */
-  --primary-soft: #eef2ff; /* selected filter background */
-  --danger: #dc2626;
-  --success: #16a34a;
-  --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  /* Tells the browser to draw built-in controls (checkboxes, scrollbars) in light style */
-  color-scheme: light;
-}
-
-[data-theme="dark"] {
-  --bg: #0f1117;
-  --surface: #1a1d27;
-  --text: #e6e6e6;
-  --text-muted: #a0a3ad;
-  --text-faint: #6b6f7a;
-  --border: #343846;
-  --divider: #2a2e3a;
-  --input-bg: #232734;
-  --primary: #818cf8; /* lighter purple so it stays readable on dark backgrounds */
-  --primary-text: #0f1117;
-  --primary-soft: #2a2d4a;
-  --danger: #f87171;
-  --success: #4ade80;
-  --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  color-scheme: dark;
-}
+/* Most styling now comes from Ant Design components and its theme
+   (see <ConfigProvider> in App.js). This file only handles page layout
+   and a few small details Ant Design doesn't cover. */
 
 body {
   margin: 0;
-  background: var(--bg);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: var(--text);
-  transition: background-color 0.2s, color 0.2s; /* smooth switch between themes */
 }
 
-.app {
+/* Page background before React loads, so dark mode doesn't flash white.
+   Matches Ant Design's layout background for each theme.
+   data-theme is set by public/index.html and the useTheme hook. */
+html[data-theme="light"] body {
+  background: #f5f5f5;
+}
+
+html[data-theme="dark"] body {
+  background: #000000;
+}
+
+/* Full-height page with the card centered near the top */
+.page {
+  min-height: 100vh;
+  padding: 60px 16px;
+}
+
+.app-card {
   position: relative; /* lets the theme toggle sit in the top-right corner */
-  max-width: 520px;
-  margin: 60px auto;
-  padding: 24px;
-  background: var(--surface);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  transition: background-color 0.2s;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
 }
 
-h1 {
-  margin: 0;
-  text-align: center;
-  color: var(--primary);
-}
-
-.app-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 20px;
-}
-
-/* Sun / moon button in the top-right corner of the card */
 .theme-toggle {
   position: absolute;
   top: 16px;
   right: 16px;
-  width: 36px;
-  height: 36px;
-  font-size: 18px;
-  line-height: 1;
-  background: var(--primary-soft);
-  border-radius: 50%;
 }
 
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  color: var(--text-muted);
-}
-
-/* A button that looks like a text link */
-.link-btn {
-  background: transparent;
-  padding: 0;
-  color: var(--primary);
-  font-size: 14px;
-  text-decoration: underline;
-}
-
-/* Shared look for all text inputs */
-input[type="text"],
-input[type="email"],
-input[type="password"] {
-  background: var(--input-bg);
-  color: var(--text);
-}
-
-input::placeholder {
-  color: var(--text-faint);
-}
-
-/* ---------- Login / signup ---------- */
-.auth h2 {
-  margin: 0 0 16px;
-  text-align: center;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.auth-form input {
-  padding: 10px 12px;
-  font-size: 16px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  outline: none;
-}
-
-.auth-form input:focus {
-  border-color: var(--primary);
-}
-
-.auth-form button[type="submit"] {
-  padding: 10px;
-  background: var(--primary);
-  color: var(--primary-text);
-  font-size: 16px;
-}
-
-.auth-form .error {
-  margin: 0;
-}
-
-.auth-switch {
-  margin: 16px 0 0;
-  text-align: center;
-  font-size: 14px;
-  color: var(--text-muted);
+.app-header {
+  margin-bottom: 20px;
 }
 
 /* ---------- Todos ---------- */
-.todo-form {
-  display: flex;
-  gap: 8px;
-}
-
-.todo-form input {
-  flex: 1;
-  padding: 10px 12px;
-  font-size: 16px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  outline: none;
-}
-
-.todo-form input:focus,
-.edit-input:focus {
-  border-color: var(--primary);
-}
-
-button {
-  cursor: pointer;
-  font-size: 14px;
-  border: none;
-  border-radius: 6px;
-}
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.todo-form button {
-  padding: 0 18px;
-  background: var(--primary);
-  color: var(--primary-text);
-  font-size: 16px;
-}
-
-.error {
-  color: var(--danger);
-  margin: 12px 0 0;
-}
-
-.empty {
-  text-align: center;
-  color: var(--text-faint);
-  margin: 24px 0;
-}
-
-/* ---------- Progress bar ---------- */
 .progress {
   margin-top: 16px;
-}
-
-.progress-label {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 6px;
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-/* The grey background of the bar */
-.progress-track {
-  height: 8px;
-  background: var(--divider);
-  border-radius: 999px; /* fully rounded ends */
-  overflow: hidden; /* keeps the fill inside the rounded corners */
-}
-
-/* The colored part; its width is set from JavaScript */
-.progress-fill {
-  height: 100%;
-  background: var(--primary);
-  border-radius: 999px;
-  transition: width 0.3s ease, background-color 0.3s; /* animates when todos are ticked */
-}
-
-.progress-fill.complete {
-  background: var(--success);
 }
 
 .todo-list {
   list-style: none;
   padding: 0;
-  margin: 20px 0 0;
+  margin: 12px 0 0;
 }
 
+/* A thin divider between rows, using Ant Design's border color for each theme */
 .todo-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 4px;
-  border-bottom: 1px solid var(--divider);
+  padding: 8px 4px;
+  border-bottom: 1px solid rgba(5, 5, 5, 0.06);
 }
 
-.todo-item input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: var(--primary); /* checkbox tick color */
+html[data-theme="dark"] .todo-item {
+  border-bottom-color: rgba(253, 253, 253, 0.12);
 }
 
+/* The todo text takes up the free space and wraps long words */
 .todo-text {
   flex: 1;
   word-break: break-word;
 }
 
-.todo-item.completed .todo-text {
-  text-decoration: line-through;
-  color: var(--text-faint);
-}
-
-.edit-input {
-  flex: 1;
-  padding: 6px 8px;
-  font-size: 15px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  outline: none;
-}
-
-.delete-btn {
-  background: transparent;
-  color: var(--text-faint);
-  font-size: 16px;
-  padding: 4px 8px;
-}
-
-.delete-btn:hover {
-  color: var(--danger);
-}
-
 .footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
   margin-top: 16px;
-  font-size: 14px;
-  color: var(--text-muted);
-}
-
-.filters {
-  display: flex;
-  gap: 4px;
-}
-
-.filters button,
-.clear-btn {
-  background: transparent;
-  padding: 4px 8px;
-  color: var(--text-muted);
-}
-
-.filters button.active {
-  background: var(--primary-soft);
-  color: var(--primary);
-}
-
-.clear-btn:hover:not(:disabled) {
-  color: var(--danger);
 }

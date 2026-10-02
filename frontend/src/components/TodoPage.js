@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
-import toast from "react-hot-toast"; // toast.success() / toast.error() show pop-up messages
+import { useCallback, useEffect, useState } from "react";
+import { App as AntApp, Button, Empty, Flex, Segmented, Spin, Typography } from "antd";
 import * as api from "../api"; // all backend calls (getTodos, createTodo, ...)
 import ProgressBar from "./ProgressBar";
 import TodoForm from "./TodoForm";
 import TodoItem from "./TodoItem";
+
+const { Text } = Typography;
 
 // Each filter is a function that decides whether a todo should be shown.
 // Used with Array.filter() below, e.g. todos.filter(FILTERS.active)
@@ -13,34 +15,47 @@ const FILTERS = {
   completed: (t) => t.completed,
 };
 
-// Show an error toast, unless the error was an expired login: in that case
-// App.js has already logged the user out and shown its own toast.
-function showError(err) {
-  if (!api.getToken()) return;
-  // Using the message as the id stops the exact same error from stacking up
-  toast.error(err.message, { id: err.message });
-}
+// Options for the <Segmented> filter control: { label shown, value stored }
+const FILTER_OPTIONS = [
+  { label: "All", value: "all" },
+  { label: "Active", value: "active" },
+  { label: "Completed", value: "completed" },
+];
 
 /**
  * TodoPage - everything you see after logging in. It owns the todo state
  * (the list, the current filter and loading) and passes data + functions
- * down to the child components as props. Results and errors are shown as toasts.
+ * down to the child components as props. Results and errors are shown as
+ * Ant Design messages (small pop-ups at the top of the screen).
  */
 export default function TodoPage() {
+  const { message } = AntApp.useApp(); // message.success(...) / message.error(...)
+
   // ---------- State ----------
   const [todos, setTodos] = useState([]); // the logged-in user's todos
   const [filter, setFilter] = useState("all"); // "all" | "active" | "completed"
   const [loading, setLoading] = useState(true); // true until the first fetch finishes
 
+  // Show an error message, unless the error was an expired login: in that case
+  // App.js has already logged the user out and shown its own message.
+  // useCallback keeps the same function between renders (it's used in useEffect below).
+  const showError = useCallback(
+    (err) => {
+      if (!api.getToken()) return;
+      // Using the text as the "key" stops the exact same error from stacking up
+      message.error({ content: err.message, key: err.message });
+    },
+    [message]
+  );
+
   // ---------- Load todos once when the page appears ----------
-  // The empty dependency array [] means "run only once, after the first render"
   useEffect(() => {
     api
       .getTodos()
       .then(setTodos) // store the todos in state
-      .catch((err) => showError(err))
-      .finally(() => setLoading(false)); // stop showing "Loading..." either way
-  }, []);
+      .catch(showError)
+      .finally(() => setLoading(false)); // stop showing the spinner either way
+  }, [showError]);
 
   // ---------- Helper ----------
   // Runs an async action and catches any error, so every handler below
@@ -65,7 +80,7 @@ export default function TodoPage() {
     run(async () => {
       const todo = await api.createTodo(text);
       setTodos((prev) => [...prev, todo]);
-      toast.success("Todo added");
+      message.success("Todo added");
     });
 
   // Flip completed true <-> false, then replace that todo in the list
@@ -80,7 +95,7 @@ export default function TodoPage() {
     run(async () => {
       const updated = await api.updateTodo(id, { text });
       setTodos((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
-      toast.success("Todo updated");
+      message.success("Todo updated");
     });
 
   // Delete a todo, then remove it from the list
@@ -88,7 +103,7 @@ export default function TodoPage() {
     run(async () => {
       await api.deleteTodo(id);
       setTodos((prev) => prev.filter((t) => t.id !== id));
-      toast.success("Todo deleted");
+      message.success("Todo deleted");
     });
 
   // Delete all completed todos at once (requests are sent in parallel)
@@ -97,7 +112,7 @@ export default function TodoPage() {
       const completed = todos.filter((t) => t.completed);
       await Promise.all(completed.map((t) => api.deleteTodo(t.id)));
       setTodos((prev) => prev.filter((t) => !t.completed));
-      toast.success(`Cleared ${completed.length} completed todo${completed.length !== 1 ? "s" : ""}`);
+      message.success(`Cleared ${completed.length} completed todo${completed.length !== 1 ? "s" : ""}`);
     });
 
   // ---------- Derived values ----------
@@ -114,11 +129,13 @@ export default function TodoPage() {
       {/* Progress across ALL todos (not just the current filter) */}
       {todos.length > 0 && <ProgressBar done={todos.length - activeCount} total={todos.length} />}
 
-      {/* Show one of three things: loading text, empty message, or the list */}
+      {/* Show one of three things: spinner, empty message, or the list */}
       {loading ? (
-        <p className="empty">Loading...</p>
+        <Flex justify="center" style={{ padding: 32 }}>
+          <Spin />
+        </Flex>
       ) : visibleTodos.length === 0 ? (
-        <p className="empty">No todos here.</p>
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No todos here." />
       ) : (
         <ul className="todo-list">
           {/* "key" helps React track which item is which when the list changes */}
@@ -130,26 +147,20 @@ export default function TodoPage() {
 
       {/* Footer only appears when at least one todo exists */}
       {todos.length > 0 && (
-        <footer className="footer">
+        <Flex className="footer" align="center" justify="space-between" wrap gap={8}>
           {/* "1 item left" vs "2 items left" */}
-          <span>
+          <Text type="secondary">
             {activeCount} item{activeCount !== 1 && "s"} left
-          </span>
+          </Text>
 
-          {/* One button per filter; the selected one gets the "active" class */}
-          <div className="filters">
-            {Object.keys(FILTERS).map((name) => (
-              <button key={name} className={filter === name ? "active" : ""} onClick={() => setFilter(name)}>
-                {name[0].toUpperCase() + name.slice(1)} {/* "all" -> "All" */}
-              </button>
-            ))}
-          </div>
+          {/* A row of connected buttons where exactly one is selected */}
+          <Segmented size="small" options={FILTER_OPTIONS} value={filter} onChange={setFilter} />
 
           {/* Disabled when nothing is completed (all todos are still active) */}
-          <button className="clear-btn" onClick={clearCompleted} disabled={activeCount === todos.length}>
+          <Button type="text" size="small" onClick={clearCompleted} disabled={activeCount === todos.length}>
             Clear completed
-          </button>
-        </footer>
+          </Button>
+        </Flex>
       )}
     </>
   );

@@ -4,13 +4,14 @@
   "private": true,
   "proxy": "http://localhost:5000",
   "dependencies": {
+    "@ant-design/icons": "^6.3.4",
     "@testing-library/dom": "^10.4.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^13.5.0",
+    "antd": "^6.6.5",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "react-hot-toast": "^2.6.1",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
@@ -19,6 +20,18 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
+  },
+  "jest": {
+    "transformIgnorePatterns": [
+      "node_modules/(?!(antd|@ant-design|@rc-component|rc-[^/]+)/)"
+    ],
+    "moduleNameMapper": {
+      "^@rc-component/([^/]+)/(?:lib/|es/)?(locale|generate)/(.*)$": "<rootDir>/node_modules/@rc-component/$1/lib/$2/$3",
+      "^@rc-component/picker/(?:lib/|es/)?generate$": "<rootDir>/node_modules/@rc-component/picker/lib/generate/index.js",
+      "^@rc-component/picker/(?:lib/|es/)?interface$": "<rootDir>/node_modules/@rc-component/picker/lib/interface.js",
+      "^@ant-design/icons/es/(.*)$": "<rootDir>/node_modules/@ant-design/icons/lib/$1",
+      "^@ant-design/icons/(?!lib/|es/)([^/]+)$": "<rootDir>/node_modules/@ant-design/icons/lib/icons/$1"
+    }
   },
   "eslintConfig": {
     "extends": [

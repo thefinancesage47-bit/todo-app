@@ -12,13 +12,16 @@ Built with **React** (Create React App) on the frontend and **Node.js + Express 
 - Add, complete, edit (double-click) and delete todos
 - Filter by All / Active / Completed
 - "Items left" counter and "Clear completed" button
+- Progress bar ("3 of 8 done")
+- Light / dark mode (follows your system setting, remembers your choice)
+- Pop-up notifications for actions and errors
 - Clear error messages (invalid email, short password, wrong login, server offline)
 
 ## Tech stack
 
 | Part | Technology |
 | --- | --- |
-| Frontend | React 19, Create React App, plain CSS |
+| Frontend | React 19, Create React App, Ant Design 6 (components, icons, light/dark theme) |
 | Backend | Node.js, Express 5 |
 | Database | MongoDB with Mongoose |
 | Authentication | JSON Web Tokens (`jsonwebtoken`), password hashing with `bcryptjs` |
@@ -49,11 +52,14 @@ todo-app/
     └── src/
         ├── App.js                 # shows login form or todo page
         ├── api.js                 # all backend requests + token storage
+        ├── hooks/
+        │   └── useTheme.js        # light / dark mode
         └── components/
             ├── AuthForm.js        # login / signup form
             ├── TodoPage.js        # todo list, filters, footer
             ├── TodoForm.js        # "add todo" input
-            └── TodoItem.js        # a single todo row
+            ├── TodoItem.js        # a single todo row
+            └── ProgressBar.js     # "3 of 8 done" bar
 ```
 
 ## Getting started

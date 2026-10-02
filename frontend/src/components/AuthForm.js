@@ -1,24 +1,29 @@
 import { useState } from "react";
+import { Alert, Button, Form, Input, Typography } from "antd";
+import { LockOutlined, MailOutlined, UserOutlined } from "@ant-design/icons";
 import * as api from "../api";
+
+const { Title, Text } = Typography;
 
 /**
  * AuthForm - one form that switches between "Log in" and "Sign up".
+ *
+ * Uses Ant Design's <Form>: each <Form.Item> has a "name" (the field key) and
+ * "rules" (validation). The form checks the rules itself, shows messages under
+ * the fields, and only calls onFinish(values) when everything is valid.
  *
  * Props:
  *   onAuthSuccess - called with (user, isNewAccount) after a successful login/signup
  */
 export default function AuthForm({ onAuthSuccess }) {
   const [mode, setMode] = useState("login"); // "login" | "signup"
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false); // disables the button while waiting
+  const [error, setError] = useState(""); // error from the server, e.g. wrong password
+  const [submitting, setSubmitting] = useState(false); // shows a spinner on the button
 
   const isSignup = mode === "signup";
 
-  const handleSubmit = async (e) => {
-    e.preventDefault(); // stop the page from reloading
+  // Runs only after all field rules pass. `values` = { name, email, password }
+  const handleFinish = async ({ name, email, password }) => {
     setError("");
     setSubmitting(true);
 
@@ -43,53 +48,61 @@ export default function AuthForm({ onAuthSuccess }) {
   };
 
   return (
-    <div className="auth">
-      <h2>{isSignup ? "Create an account" : "Welcome back"}</h2>
+    <div>
+      <Title level={4} style={{ textAlign: "center", marginTop: 0 }}>
+        {isSignup ? "Create an account" : "Welcome back"}
+      </Title>
 
-      <form className="auth-form" onSubmit={handleSubmit}>
+      {/* requiredMark={false} hides the red asterisks; size="large" for all inputs */}
+      <Form layout="vertical" size="large" requiredMark={false} onFinish={handleFinish}>
         {/* The name field only appears when signing up */}
         {isSignup && (
-          <input
-            type="text"
-            placeholder="Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            autoComplete="name"
-          />
+          <Form.Item name="name" rules={[{ required: true, whitespace: true, message: "Please enter your name" }]}>
+            <Input prefix={<UserOutlined aria-hidden />} placeholder="Name" autoComplete="name" />
+          </Form.Item>
         )}
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          autoComplete="email"
-        />
-        <input
-          type="password"
-          placeholder={isSignup ? "Password (min 6 characters)" : "Password"}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={isSignup ? 6 : undefined}
-          // Lets password managers know whether to suggest a new or saved password
-          autoComplete={isSignup ? "new-password" : "current-password"}
-        />
 
-        {error && <p className="error">{error}</p>}
+        <Form.Item
+          name="email"
+          rules={[
+            { required: true, message: "Please enter your email" },
+            { type: "email", message: "Please enter a valid email" },
+          ]}
+        >
+          <Input prefix={<MailOutlined aria-hidden />} placeholder="Email" autoComplete="email" />
+        </Form.Item>
 
-        <button type="submit" disabled={submitting}>
-          {submitting ? "Please wait..." : isSignup ? "Sign up" : "Log in"}
-        </button>
-      </form>
+        <Form.Item
+          name="password"
+          rules={[
+            { required: true, message: "Please enter your password" },
+            // The minimum length rule only applies when creating an account
+            ...(isSignup ? [{ min: 6, message: "Password must be at least 6 characters" }] : []),
+          ]}
+        >
+          {/* Input.Password adds the "show/hide password" eye icon */}
+          <Input.Password
+            prefix={<LockOutlined aria-hidden />}
+            placeholder={isSignup ? "Password (min 6 characters)" : "Password"}
+            // Lets password managers know whether to suggest a new or saved password
+            autoComplete={isSignup ? "new-password" : "current-password"}
+          />
+        </Form.Item>
 
-      <p className="auth-switch">
+        {/* Errors from the server (field errors are shown by the form itself) */}
+        {error && <Alert type="error" title={error} showIcon style={{ marginBottom: 16 }} />}
+
+        <Button type="primary" htmlType="submit" block loading={submitting}>
+          {isSignup ? "Sign up" : "Log in"}
+        </Button>
+      </Form>
+
+      <Text type="secondary" style={{ display: "block", textAlign: "center", marginTop: 16 }}>
         {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
-        <button type="button" className="link-btn" onClick={toggleMode}>
+        <Button type="link" onClick={toggleMode} style={{ padding: 0 }}>
           {isSignup ? "Log in" : "Sign up"}
-        </button>
-      </p>
+        </Button>
+      </Text>
     </div>
   );
 }

@@ -1,12 +1,16 @@
 import { useState } from "react";
+import { Button, Checkbox, Flex, Input, Tooltip, Typography } from "antd";
+import { DeleteOutlined } from "@ant-design/icons";
+
+const { Text } = Typography;
 
 /**
  * TodoItem - renders a single todo row.
  *
- * Props (passed down from App.js):
+ * Props (passed down from TodoPage.js):
  *   todo     - the todo object: { id, text, completed, createdAt }
  *   onToggle - called with the todo when the checkbox is clicked
- *   onDelete - called with the todo id when the ✕ button is clicked
+ *   onDelete - called with the todo id when the delete button is clicked
  *   onEdit   - called with (id, newText) when an edit is saved
  */
 export default function TodoItem({ todo, onToggle, onDelete, onEdit }) {
@@ -33,9 +37,8 @@ export default function TodoItem({ todo, onToggle, onDelete, onEdit }) {
     setIsEditing(false);
   };
 
-  // Keyboard shortcuts while editing: Enter = save, Escape = cancel
+  // Escape = cancel editing (Enter is handled by onPressEnter below)
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") saveEdit();
     if (e.key === "Escape") {
       setDraft(todo.text); // discard changes
       setIsEditing(false);
@@ -43,37 +46,50 @@ export default function TodoItem({ todo, onToggle, onDelete, onEdit }) {
   };
 
   return (
-    // The "completed" class adds a strike-through style (see App.css)
-    <li className={`todo-item ${todo.completed ? "completed" : ""}`}>
-      {/* Checkbox to mark the todo as done / not done */}
-      <input
-        type="checkbox"
-        checked={todo.completed}
-        onChange={() => onToggle(todo)}
-        aria-label={`Mark "${todo.text}" as ${todo.completed ? "incomplete" : "complete"}`}
-      />
-
-      {/* Show a text input while editing, otherwise show the todo text */}
-      {isEditing ? (
-        <input
-          className="edit-input"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={saveEdit} // clicking outside the input also saves
-          onKeyDown={handleKeyDown}
-          autoFocus // put the cursor in the input immediately
+    <li className="todo-item">
+      <Flex align="center" gap={12}>
+        {/* Checkbox to mark the todo as done / not done */}
+        <Checkbox
+          checked={todo.completed}
+          onChange={() => onToggle(todo)}
+          aria-label={`Mark "${todo.text}" as ${todo.completed ? "incomplete" : "complete"}`}
         />
-      ) : (
-        // Double-clicking the text switches to edit mode
-        <span className="todo-text" onDoubleClick={() => setIsEditing(true)} title="Double-click to edit">
-          {todo.text}
-        </span>
-      )}
 
-      {/* Delete button */}
-      <button className="delete-btn" onClick={() => onDelete(todo.id)} aria-label={`Delete "${todo.text}"`}>
-        ✕
-      </button>
+        {/* Show a text input while editing, otherwise show the todo text */}
+        {isEditing ? (
+          <Input
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onPressEnter={saveEdit}
+            onBlur={saveEdit} // clicking outside the input also saves
+            onKeyDown={handleKeyDown}
+            autoFocus // put the cursor in the input immediately
+          />
+        ) : (
+          // Double-clicking the text switches to edit mode.
+          // "delete" draws a strike-through; "secondary" makes it grey.
+          <Text
+            className="todo-text"
+            delete={todo.completed}
+            type={todo.completed ? "secondary" : undefined}
+            onDoubleClick={() => setIsEditing(true)}
+            title="Double-click to edit"
+          >
+            {todo.text}
+          </Text>
+        )}
+
+        {/* Delete button */}
+        <Tooltip title="Delete">
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => onDelete(todo.id)}
+            aria-label={`Delete "${todo.text}"`}
+          />
+        </Tooltip>
+      </Flex>
     </li>
   );
 }

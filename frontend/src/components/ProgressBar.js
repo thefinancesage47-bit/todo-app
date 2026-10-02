@@ -1,3 +1,7 @@
+import { Progress, Typography } from "antd";
+
+const { Text } = Typography;
+
 /**
  * ProgressBar - shows how many todos are done, e.g. "3 of 8 done" + a bar.
  *
@@ -11,23 +15,11 @@ export default function ProgressBar({ done, total }) {
 
   return (
     <div className="progress">
-      <div className="progress-label">
-        <span>{allDone ? "All done! 🎉" : `${done} of ${total} done`}</span>
-        <span>{percent}%</span>
-      </div>
+      <Text type="secondary">{allDone ? "All done! 🎉" : `${done} of ${total} done`}</Text>
 
-      {/* role="progressbar" + aria-value* let screen readers announce the progress */}
-      <div
-        className="progress-track"
-        role="progressbar"
-        aria-label="Todos completed"
-        aria-valuenow={percent}
-        aria-valuemin={0}
-        aria-valuemax={100}
-      >
-        {/* The filled part: its width is the percentage. Turns green at 100%. */}
-        <div className={`progress-fill ${allDone ? "complete" : ""}`} style={{ width: `${percent}%` }} />
-      </div>
+      {/* Ant Design's Progress animates on change, shows the % on the right,
+          and turns green with a check icon when status="success" */}
+      <Progress percent={percent} status={allDone ? "success" : "normal"} aria-label="Todos completed" />
     </div>
   );
 }
