@@ -64,6 +64,31 @@ test("a failed request shows an error toast and keeps the typed text", async () 
   expect(screen.getByLabelText("New todo")).toHaveValue("Buy milk");
 });
 
+test("progress bar shows how many todos are done", async () => {
+  localStorage.setItem("token", "fake-token");
+  global.fetch = jest
+    .fn()
+    .mockResolvedValueOnce(response(200, { user: { id: "1", name: "Alice" } }))
+    .mockResolvedValueOnce(
+      response(200, [
+        { id: "a", text: "One", completed: true },
+        { id: "b", text: "Two", completed: false },
+        { id: "c", text: "Three", completed: false },
+        { id: "d", text: "Four", completed: false },
+      ])
+    )
+    .mockResolvedValueOnce(response(200, { id: "b", text: "Two", completed: true })); // PUT (toggle)
+
+  render(<App />);
+  expect(await screen.findByText("1 of 4 done")).toBeInTheDocument();
+  expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "25");
+
+  // Ticking another todo updates the progress
+  await userEvent.click(screen.getByLabelText('Mark "Two" as complete'));
+  expect(await screen.findByText("2 of 4 done")).toBeInTheDocument();
+  expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "50");
+});
+
 test("dark mode toggle switches the theme and remembers it", async () => {
   render(<App />);
   const toggle = screen.getByRole("button", { name: "Switch to dark mode" });

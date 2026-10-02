@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast"; // toast.success() / toast.error() show pop-up messages
 import * as api from "../api"; // all backend calls (getTodos, createTodo, ...)
+import ProgressBar from "./ProgressBar";
 import TodoForm from "./TodoForm";
 import TodoItem from "./TodoItem";
 
@@ -109,6 +110,9 @@ export default function TodoPage() {
     <>
       {/* Input to add new todos */}
       <TodoForm onAdd={addTodo} />
+
+      {/* Progress across ALL todos (not just the current filter) */}
+      {todos.length > 0 && <ProgressBar done={todos.length - activeCount} total={todos.length} />}
 
       {/* Show one of three things: loading text, empty message, or the list */}
       {loading ? (

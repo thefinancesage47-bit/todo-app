@@ -15,6 +15,7 @@
   --primary-text: #ffffff; /* text on primary-colored buttons */
   --primary-soft: #eef2ff; /* selected filter background */
   --danger: #dc2626;
+  --success: #16a34a;
   --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   /* Tells the browser to draw built-in controls (checkboxes, scrollbars) in light style */
   color-scheme: light;
@@ -33,6 +34,7 @@
   --primary-text: #0f1117;
   --primary-soft: #2a2d4a;
   --danger: #f87171;
+  --success: #4ade80;
   --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   color-scheme: dark;
 }
@@ -204,6 +206,39 @@ button:disabled {
   text-align: center;
   color: var(--text-faint);
   margin: 24px 0;
+}
+
+/* ---------- Progress bar ---------- */
+.progress {
+  margin-top: 16px;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* The grey background of the bar */
+.progress-track {
+  height: 8px;
+  background: var(--divider);
+  border-radius: 999px; /* fully rounded ends */
+  overflow: hidden; /* keeps the fill inside the rounded corners */
+}
+
+/* The colored part; its width is set from JavaScript */
+.progress-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 999px;
+  transition: width 0.3s ease, background-color 0.3s; /* animates when todos are ticked */
+}
+
+.progress-fill.complete {
+  background: var(--success);
 }
 
 .todo-list {
