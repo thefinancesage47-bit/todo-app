@@ -89,6 +89,60 @@ test("progress bar shows how many todos are done", async () => {
   expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "50");
 });
 
+test("deleting a todo can be undone", async () => {
+  localStorage.setItem("token", "fake-token");
+  const todo = { id: "a", text: "Buy milk", completed: false, createdAt: "2026-01-01T00:00:00.000Z" };
+  global.fetch = jest
+    .fn()
+    .mockResolvedValueOnce(response(200, { user: { id: "1", name: "Alice" } })) // GET /api/auth/me
+    .mockResolvedValueOnce(response(200, [todo])) // GET /api/todos
+    .mockResolvedValueOnce({ ok: true, status: 204, json: () => Promise.resolve(null) }) // DELETE
+    .mockResolvedValueOnce(response(201, todo)); // POST /api/todos/restore
+
+  render(<App />);
+  await userEvent.click(await screen.findByLabelText('Delete "Buy milk"'));
+
+  // The todo disappears and the message offers Undo
+  expect(await screen.findByText("Todo deleted")).toBeInTheDocument();
+  expect(screen.queryByText("Buy milk")).not.toBeInTheDocument();
+
+  await userEvent.click(screen.getByRole("button", { name: "Undo" }));
+
+  // The todo is back, and the restore request sent the whole deleted todo
+  expect(await screen.findByText("Buy milk")).toBeInTheDocument();
+  expect(await screen.findByText("Todo restored")).toBeInTheDocument();
+  const [url, options] = global.fetch.mock.calls[3];
+  expect(url).toBe("/api/todos/restore");
+  expect(JSON.parse(options.body)).toEqual(todo);
+});
+
+test("clear completed asks for confirmation first", async () => {
+  localStorage.setItem("token", "fake-token");
+  global.fetch = jest
+    .fn()
+    .mockResolvedValueOnce(response(200, { user: { id: "1", name: "Alice" } }))
+    .mockResolvedValueOnce(
+      response(200, [
+        { id: "a", text: "Done one", completed: true },
+        { id: "b", text: "Still to do", completed: false },
+      ])
+    )
+    .mockResolvedValueOnce({ ok: true, status: 204, json: () => Promise.resolve(null) }); // DELETE "a"
+
+  render(<App />);
+  await userEvent.click(await screen.findByRole("button", { name: "Clear completed" }));
+
+  // Nothing is deleted until the user confirms
+  expect(await screen.findByText("Delete completed todos?")).toBeInTheDocument();
+  expect(global.fetch).toHaveBeenCalledTimes(2);
+
+  await userEvent.click(screen.getByRole("button", { name: "Delete" }));
+
+  expect(await screen.findByText("Cleared 1 completed todo")).toBeInTheDocument();
+  expect(screen.queryByText("Done one")).not.toBeInTheDocument();
+  expect(screen.getByText("Still to do")).toBeInTheDocument();
+});
+
 test("dark mode toggle switches the theme and remembers it", async () => {
   render(<App />);
   const toggle = screen.getByRole("button", { name: "Switch to dark mode" });

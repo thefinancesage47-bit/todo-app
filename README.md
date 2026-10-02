@@ -11,7 +11,8 @@ Built with **React** (Create React App) on the frontend and **Node.js + Express 
 - Each user only sees and can change their own todos
 - Add, complete, edit (double-click) and delete todos
 - Filter by All / Active / Completed
-- "Items left" counter and "Clear completed" button
+- "Items left" counter and "Clear completed" button (asks for confirmation)
+- Undo a delete for 5 seconds
 - Progress bar ("3 of 8 done")
 - Light / dark mode (follows your system setting, remembers your choice)
 - Pop-up notifications for actions and errors
@@ -153,6 +154,7 @@ Authorization: Bearer <token>
 | `POST` | `/api/todos` | `{ text }` | `201` the new todo |
 | `PUT` | `/api/todos/:id` | `{ text?, completed? }` | `200` the updated todo |
 | `DELETE` | `/api/todos/:id` | none | `204` no content |
+| `POST` | `/api/todos/restore` | `{ id, text, completed, createdAt }` | `201` the restored todo (used by "Undo") |
 
 Errors are returned as `{ "error": "message" }` with a matching status code: `400` invalid input, `401` not logged in or bad credentials, `404` not found, `409` email already registered, `500` server error.
 

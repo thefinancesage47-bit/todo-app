@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { App as AntApp, Button, Empty, Flex, Segmented, Spin, Typography } from "antd";
+import { App as AntApp, Button, Empty, Flex, Popconfirm, Segmented, Spin, Typography } from "antd";
 import * as api from "../api"; // all backend calls (getTodos, createTodo, ...)
 import ProgressBar from "./ProgressBar";
 import TodoForm from "./TodoForm";
@@ -21,6 +21,12 @@ const FILTER_OPTIONS = [
   { label: "Active", value: "active" },
   { label: "Completed", value: "completed" },
 ];
+
+// How long the "Todo deleted - Undo" message stays visible, in seconds
+const UNDO_SECONDS = 5;
+
+// Keep todos in creation order (oldest first), the same order the server uses
+const byCreatedAt = (a, b) => new Date(a.createdAt) - new Date(b.createdAt);
 
 /**
  * TodoPage - everything you see after logging in. It owns the todo state
@@ -98,12 +104,38 @@ export default function TodoPage() {
       message.success("Todo updated");
     });
 
-  // Delete a todo, then remove it from the list
+  // Put a just-deleted todo back (the "Undo" button in the delete message)
+  const undoDelete = (todo, messageKey) =>
+    run(async () => {
+      message.destroy(messageKey); // close the "Todo deleted" message straight away
+      const restored = await api.restoreTodo(todo);
+      // Add it back and re-sort, so it returns to its original position
+      setTodos((prev) => [...prev, restored].sort(byCreatedAt));
+      message.success("Todo restored");
+    });
+
+  // Delete a todo, then remove it from the list and offer "Undo" for a few seconds
   const removeTodo = (id) =>
     run(async () => {
+      const todo = todos.find((t) => t.id === id); // keep a copy so Undo can restore it
       await api.deleteTodo(id);
       setTodos((prev) => prev.filter((t) => t.id !== id));
-      message.success("Todo deleted");
+
+      // A unique key per todo lets us close this exact message when Undo is clicked
+      const key = `deleted-${id}`;
+      message.open({
+        key,
+        type: "success",
+        duration: UNDO_SECONDS,
+        content: (
+          <span>
+            Todo deleted
+            <Button type="link" size="small" onClick={() => undoDelete(todo, key)}>
+              Undo
+            </Button>
+          </span>
+        ),
+      });
     });
 
   // Delete all completed todos at once (requests are sent in parallel)
@@ -156,10 +188,25 @@ export default function TodoPage() {
           {/* A row of connected buttons where exactly one is selected */}
           <Segmented size="small" options={FILTER_OPTIONS} value={filter} onChange={setFilter} />
 
-          {/* Disabled when nothing is completed (all todos are still active) */}
-          <Button type="text" size="small" onClick={clearCompleted} disabled={activeCount === todos.length}>
-            Clear completed
-          </Button>
+          {/* Deleting several todos at once asks for confirmation first.
+              Popconfirm shows a small "Are you sure?" bubble and only calls
+              onConfirm if the user clicks "Delete". Both are disabled when
+              nothing is completed (all todos are still active). */}
+          <Popconfirm
+            title="Delete completed todos?"
+            description={`This will permanently delete ${todos.length - activeCount} completed todo${
+              todos.length - activeCount !== 1 ? "s" : ""
+            }.`}
+            okText="Delete"
+            okButtonProps={{ danger: true }}
+            cancelText="Cancel"
+            onConfirm={clearCompleted}
+            disabled={activeCount === todos.length}
+          >
+            <Button type="text" size="small" disabled={activeCount === todos.length}>
+              Clear completed
+            </Button>
+          </Popconfirm>
         </Flex>
       )}
     </>

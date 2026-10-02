@@ -31,6 +31,16 @@ window.getComputedStyle = (element, pseudoElement) => {
   }
 };
 
+// jsdom has no ResizeObserver, which Ant Design uses to position popups
+// (Popconfirm, Tooltip). Nothing is ever resized in tests, so it can do nothing.
+if (typeof window.ResizeObserver === "undefined") {
+  window.ResizeObserver = class ResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+}
+
 // jsdom also lacks MessageChannel, which Ant Design uses to run code on the next
 // tick (postMessage on port2 -> onmessage on port1). setTimeout does the same job here.
 if (typeof window.MessageChannel === "undefined") {

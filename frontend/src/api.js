@@ -83,3 +83,8 @@ export const updateTodo = (id, updates) =>
 
 // DELETE /api/todos/:id -> nothing (null)
 export const deleteTodo = (id) => request(`${TODOS_URL}/${id}`, { method: "DELETE" });
+
+// POST /api/todos/restore -> the restored todo. Used by "Undo" after a delete;
+// sends the whole deleted todo so it comes back with the same id and date.
+export const restoreTodo = (todo) =>
+  request(`${TODOS_URL}/restore`, { method: "POST", body: JSON.stringify(todo) });

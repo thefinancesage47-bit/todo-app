@@ -18,9 +18,13 @@ function errorHandler(err, req, res, next) {
     const messages = Object.values(err.errors).map((e) => e.message);
     return res.status(400).json({ error: messages.join(". ") });
   }
-  // Duplicate value in a "unique" field (MongoDB error code 11000) -> email already used
+  // Duplicate value in a unique field (MongoDB error code 11000). err.keyValue says
+  // which field: { email: ... } on signup, { _id: ... } when restoring a todo.
   if (err.code === 11000) {
-    return res.status(409).json({ error: "An account with this email already exists" }); // 409 = Conflict
+    const error = err.keyValue && "email" in err.keyValue
+      ? "An account with this email already exists"
+      : "This item already exists";
+    return res.status(409).json({ error }); // 409 = Conflict
   }
   // Request body is not valid JSON (thrown by express.json())
   if (err.type === "entity.parse.failed") {

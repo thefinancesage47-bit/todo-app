@@ -3,7 +3,7 @@
 // and "/:id" means "/api/todos/:id".
 
 const express = require("express");
-const { getTodos, createTodo, updateTodo, deleteTodo } = require("../controllers/todoController");
+const { getTodos, createTodo, updateTodo, deleteTodo, restoreTodo } = require("../controllers/todoController");
 const protect = require("../middleware/auth");
 
 const router = express.Router();
@@ -13,6 +13,7 @@ router.use(protect);
 
 router.get("/", getTodos); //         GET    /api/todos
 router.post("/", createTodo); //      POST   /api/todos
+router.post("/restore", restoreTodo); // POST /api/todos/restore (undo a delete)
 router.put("/:id", updateTodo); //    PUT    /api/todos/:id
 router.delete("/:id", deleteTodo); // DELETE /api/todos/:id
 
