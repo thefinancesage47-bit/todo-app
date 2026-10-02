@@ -4,6 +4,7 @@
 
 const express = require("express");
 const cors = require("cors");
+const authRoutes = require("./routes/authRoutes");
 const todoRoutes = require("./routes/todoRoutes");
 const { notFound, errorHandler } = require("./middleware/errorHandler");
 
@@ -14,8 +15,8 @@ app.use(cors()); // allow cross-origin requests from the frontend
 app.use(express.json()); // parse JSON request bodies into req.body
 
 // ---------- Routes ----------
-// Every route in todoRoutes is prefixed with /api/todos
-app.use("/api/todos", todoRoutes);
+app.use("/api/auth", authRoutes); // signup, login, current user (public except /me)
+app.use("/api/todos", todoRoutes); // todos (all require login)
 
 // ---------- Error handling (must come AFTER the routes) ----------
 app.use(notFound); // no route matched

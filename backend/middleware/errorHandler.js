@@ -12,9 +12,15 @@ function errorHandler(err, req, res, next) {
   if (err instanceof mongoose.Error.CastError) {
     return res.status(404).json({ error: "Todo not found" });
   }
-  // Schema validation failed (e.g. missing text)
+  // Schema validation failed (e.g. invalid email, password too short).
+  // Send only our friendly messages, e.g. "Please enter a valid email".
   if (err instanceof mongoose.Error.ValidationError) {
-    return res.status(400).json({ error: err.message });
+    const messages = Object.values(err.errors).map((e) => e.message);
+    return res.status(400).json({ error: messages.join(". ") });
+  }
+  // Duplicate value in a "unique" field (MongoDB error code 11000) -> email already used
+  if (err.code === 11000) {
+    return res.status(409).json({ error: "An account with this email already exists" }); // 409 = Conflict
   }
   // Request body is not valid JSON (thrown by express.json())
   if (err.type === "entity.parse.failed") {

@@ -4,8 +4,12 @@
 
 const express = require("express");
 const { getTodos, createTodo, updateTodo, deleteTodo } = require("../controllers/todoController");
+const protect = require("../middleware/auth");
 
 const router = express.Router();
+
+// Every todo route below requires a logged-in user
+router.use(protect);
 
 router.get("/", getTodos); //         GET    /api/todos
 router.post("/", createTodo); //      POST   /api/todos

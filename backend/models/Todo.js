@@ -12,6 +12,15 @@ const todoSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // The user who owns this todo. Stores the user's id and points ("ref")
+    // to the User model. Every todo query filters by this field so users
+    // only ever see their own todos.
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true, // makes "find all todos for this user" fast
+    },
   },
   {
     // Automatically adds and maintains "createdAt" and "updatedAt" fields

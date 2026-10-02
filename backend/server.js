@@ -8,6 +8,12 @@ const connectDB = require("./config/db");
 
 const PORT = process.env.PORT || 5000;
 
+// Tokens can't be signed or verified without a secret, so refuse to start without one
+if (!process.env.JWT_SECRET) {
+  console.error("JWT_SECRET is missing. Add it to backend/.env (see .env.example).");
+  process.exit(1);
+}
+
 // Only start accepting requests once the database connection is ready
 connectDB().then(() => {
   app.listen(PORT, () => {
