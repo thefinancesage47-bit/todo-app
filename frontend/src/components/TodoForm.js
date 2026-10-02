@@ -20,9 +20,10 @@ export default function TodoForm({ onAdd }) {
     const trimmed = text.trim();
     if (!trimmed) return;
 
-    // Ask the parent (App.js) to create the todo, then clear the input
-    await onAdd(trimmed);
-    setText("");
+    // Ask the parent (TodoPage.js) to create the todo. Only clear the input if it
+    // worked, so the user doesn't lose what they typed when there's an error.
+    const added = await onAdd(trimmed);
+    if (added) setText("");
   };
 
   return (

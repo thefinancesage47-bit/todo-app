@@ -26,8 +26,42 @@ test("logs in, stores the token and shows the todo page", async () => {
   await userEvent.click(screen.getByRole("button", { name: "Log in" }));
 
   expect(await screen.findByText("Hi, Alice")).toBeInTheDocument();
+  expect(await screen.findByText("Welcome back, Alice!")).toBeInTheDocument(); // toast
   expect(await screen.findByText("No todos here.")).toBeInTheDocument();
   expect(localStorage.getItem("token")).toBe("fake-token");
+});
+
+test("adding a todo shows it in the list with a success toast", async () => {
+  localStorage.setItem("token", "fake-token"); // already logged in
+  global.fetch = jest
+    .fn()
+    .mockResolvedValueOnce(response(200, { user: { id: "1", name: "Alice" } })) // GET /api/auth/me
+    .mockResolvedValueOnce(response(200, [])) // GET /api/todos
+    .mockResolvedValueOnce(response(201, { id: "t1", text: "Buy milk", completed: false })); // POST
+
+  render(<App />);
+  await userEvent.type(await screen.findByLabelText("New todo"), "Buy milk");
+  await userEvent.click(screen.getByRole("button", { name: "Add" }));
+
+  expect(await screen.findByText("Buy milk")).toBeInTheDocument();
+  expect(await screen.findByText("Todo added")).toBeInTheDocument();
+  expect(screen.getByLabelText("New todo")).toHaveValue(""); // input cleared
+});
+
+test("a failed request shows an error toast and keeps the typed text", async () => {
+  localStorage.setItem("token", "fake-token");
+  global.fetch = jest
+    .fn()
+    .mockResolvedValueOnce(response(200, { user: { id: "1", name: "Alice" } }))
+    .mockResolvedValueOnce(response(200, []))
+    .mockResolvedValueOnce(response(500, { error: "Something went wrong" }));
+
+  render(<App />);
+  await userEvent.type(await screen.findByLabelText("New todo"), "Buy milk");
+  await userEvent.click(screen.getByRole("button", { name: "Add" }));
+
+  expect(await screen.findByText("Something went wrong")).toBeInTheDocument();
+  expect(screen.getByLabelText("New todo")).toHaveValue("Buy milk");
 });
 
 test("shows the server's error message when login fails", async () => {

@@ -5,7 +5,7 @@ import * as api from "../api";
  * AuthForm - one form that switches between "Log in" and "Sign up".
  *
  * Props:
- *   onAuthSuccess - called with the user object after a successful login/signup
+ *   onAuthSuccess - called with (user, isNewAccount) after a successful login/signup
  */
 export default function AuthForm({ onAuthSuccess }) {
   const [mode, setMode] = useState("login"); // "login" | "signup"
@@ -29,7 +29,7 @@ export default function AuthForm({ onAuthSuccess }) {
         : await api.login(email, password);
 
       api.setToken(token); // save the token so future requests are authenticated
-      onAuthSuccess(user); // tell App.js who is logged in
+      onAuthSuccess(user, isSignup); // tell App.js who is logged in (and if they just signed up)
     } catch (err) {
       setError(err.message); // e.g. "Invalid email or password"
       setSubmitting(false);
