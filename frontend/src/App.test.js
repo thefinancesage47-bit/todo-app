@@ -64,6 +64,19 @@ test("a failed request shows an error toast and keeps the typed text", async () 
   expect(screen.getByLabelText("New todo")).toHaveValue("Buy milk");
 });
 
+test("dark mode toggle switches the theme and remembers it", async () => {
+  render(<App />);
+  const toggle = screen.getByRole("button", { name: "Switch to dark mode" });
+
+  await userEvent.click(toggle);
+  expect(document.documentElement).toHaveAttribute("data-theme", "dark");
+  expect(localStorage.getItem("theme")).toBe("dark");
+
+  await userEvent.click(screen.getByRole("button", { name: "Switch to light mode" }));
+  expect(document.documentElement).toHaveAttribute("data-theme", "light");
+  expect(localStorage.getItem("theme")).toBe("light");
+});
+
 test("shows the server's error message when login fails", async () => {
   global.fetch = jest.fn().mockResolvedValueOnce(response(401, { error: "Invalid email or password" }));
 

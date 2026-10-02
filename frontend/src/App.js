@@ -4,6 +4,7 @@ import "./App.css";
 import * as api from "./api";
 import AuthForm from "./components/AuthForm";
 import TodoPage from "./components/TodoPage";
+import useTheme from "./hooks/useTheme";
 
 /**
  * App - decides what to show based on whether someone is logged in:
@@ -18,6 +19,7 @@ function App() {
   const [user, setUser] = useState(null); // the logged-in user, or null
   // Start in "checking" mode only if a token was saved from a previous visit
   const [checkingAuth, setCheckingAuth] = useState(() => Boolean(api.getToken()));
+  const { theme, toggleTheme } = useTheme(); // light / dark mode
 
   // Log out: forget the token and the user. Nothing to tell the server, because
   // a JWT isn't stored on the server - deleting it on our side is enough.
@@ -67,13 +69,25 @@ function App() {
   return (
     <div className="app">
       {/* Where toasts appear. Success toasts close after 2s, errors after 4s. */}
+      {/* Toasts use the theme's CSS variables so they match light/dark mode. */}
       <Toaster
         position="top-center"
         toastOptions={{
+          style: { background: "var(--surface)", color: "var(--text)", border: "1px solid var(--border)" },
           success: { duration: 2000 },
           error: { duration: 4000 },
         }}
       />
+
+      {/* Shows the icon of the theme you'll switch TO */}
+      <button
+        className="theme-toggle"
+        onClick={toggleTheme}
+        aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      >
+        {theme === "dark" ? "☀️" : "🌙"}
+      </button>
 
       <header className="app-header">
         <h1>Todo App</h1>
